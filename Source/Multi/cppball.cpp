@@ -62,11 +62,10 @@ void Acppball::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	{
-		if (!CurrentVelocity.IsZero())
-		{
-			FVector NewLocation = CurrentVelocity * DeltaTime;
-	        OurVisibleComponent->AddForce(NewLocation*3000);
-		}
+		float side = right + left;
+		float ahead = forward + back;
+		FVector direction = { ahead, side, 0 };
+		OurVisibleComponent->AddForce(DeltaTime * direction * 3000);
 	}
 
 }
@@ -77,18 +76,28 @@ void Acppball::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	// Respond every frame to the values of our two movement axes, "MoveX" and "MoveY".
-	PlayerInputComponent->BindAxis("MoveX", this, &Acppball::Move_XAxis);
-	PlayerInputComponent->BindAxis("MoveY", this, &Acppball::Move_YAxis);
+	PlayerInputComponent->BindAxis("Left", this, &Acppball::Move_Left);
+	PlayerInputComponent->BindAxis("Right", this, &Acppball::Move_Right);
+	PlayerInputComponent->BindAxis("Back", this, &Acppball::Move_Back);
+	PlayerInputComponent->BindAxis("Forward", this, &Acppball::Move_Forward);
 }
 
-void Acppball::Move_XAxis(float AxisValue)
+void Acppball::Move_Right(float AxisValue)
 {
-	// Move at 100 units per second forward or backward
-	CurrentVelocity.X = FMath::Clamp(AxisValue, -1.0f, 1.0f) * 100.0f;
+	right = AxisValue;
 }
 
-void Acppball::Move_YAxis(float AxisValue)
+void Acppball::Move_Left(float AxisValue)
 {
-	// Move at 100 units per second right or left
-	CurrentVelocity.Y = FMath::Clamp(AxisValue, -1.0f, 1.0f) * 100.0f;
+	left = AxisValue;
+}
+
+void Acppball::Move_Forward(float AxisValue)
+{
+	forward = AxisValue;
+}
+
+void Acppball::Move_Back(float AxisValue)
+{
+	back = AxisValue;
 }

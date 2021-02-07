@@ -43,10 +43,14 @@ public:
 	USphereComponent* SphereComponent;
 	
 	    //Input functions
-    void Move_XAxis(float AxisValue);
-    void Move_YAxis(float AxisValue);
+    void Move_Right(float AxisValue);
+    void Move_Left(float AxisValue);
+    void Move_Forward(float AxisValue);
+    void Move_Back(float AxisValue);
 
-	UPROPERTY(VisibleAnywhere)
-	FVector CurrentVelocity;
+	float right;
+	float left;
+	float forward;
+	float back;
 
 };
