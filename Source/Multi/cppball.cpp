@@ -9,6 +9,10 @@
 #include "Components/InputComponent.h"
 #include "Physics/PhysicsInterfaceCore.h"
 #include "Components/PrimitiveComponent.h"
+#include "Math/Vector.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Materials/Material.h"
+#include "Logging/MessageLog.h"
 
 // Sets default values
 Acppball::Acppball()
@@ -47,25 +51,40 @@ Acppball::Acppball()
 		OurVisibleComponent->SetRelativeLocation(FVector(0.0f, 0.0f, -40.0f));
 		OurVisibleComponent->SetWorldScale3D(FVector(0.8f));
 	}
+	static ConstructorHelpers::FObjectFinder<UMaterial> BallSkin(TEXT("/Game/StarterContent/Materials/M_Brick_Clay_Beveled.M_Brick_Clay_Beveled"));
+	if (BallSkin.Succeeded()) {
+		OurVisibleComponent->SetMaterial(0, BallSkin.Object);
+	}
 }
 
 // Called when the game starts or when spawned
 void Acppball::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	UE_LOG(LogBlueprintUserMessages, Verbose, TEXT("hey------------------------------------------------"));
 }
 
 // Called every frame
 void Acppball::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	FRotator springRotation = spring->GetComponentRotation();
 
 	{
 		float side = right + left;
 		float ahead = forward + back;
 		FVector direction = { ahead, side, 0 };
-		OurVisibleComponent->AddForce(DeltaTime * direction * 3000);
+		FVector nowhere = { 0,0,0 };
+		FVector verticalAxis = { 0,0,1 };
+		FVector unitDirection = UKismetMathLibrary::GetDirectionUnitVector(nowhere,direction);
+		unitDirection.Y *= -1;
+		FVector unitDirectionScaled = unitDirection * 100000000.0;
+		FVector torqueToAdd = UKismetMathLibrary::RotateAngleAxis(unitDirectionScaled, springRotation.Yaw, verticalAxis);
+		//Add a material so you can see what is happening here.
+		OurVisibleComponent->AddTorqueInRadians(DeltaTime * torqueToAdd);
+		//GetController().ClientMessage(TEXT("hey"))
+
+		//OurVisibleComponent->AddForce(DeltaTime * direction * 3000);
 	}
 
 }
