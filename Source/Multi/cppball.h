@@ -47,10 +47,14 @@ public:
     void Move_Left(float AxisValue);
     void Move_Forward(float AxisValue);
     void Move_Back(float AxisValue);
+    void Rotate_Right(float AxisValue);
+    void Rotate_Left(float AxisValue);
 
 	float right;
 	float left;
 	float forward;
 	float back;
+	float rotateRight;
+	float rotateLeft;
 
 };

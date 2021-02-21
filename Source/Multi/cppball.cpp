@@ -27,12 +27,10 @@ Acppball::Acppball()
 	SphereComponent->SetSimulatePhysics(true);
 
 	// Set this pawn to be controlled by the lowest-numbered player
-	AutoPossessPlayer = EAutoReceiveInput::Player0;
+	//AutoPossessPlayer = EAutoReceiveInput::Player0;
 
 	spring = CreateDefaultSubobject<USpringArmComponent>(TEXT("spring"));
-	spring->bInheritPitch = false;
-	spring->bInheritYaw = false;
-	spring->bInheritRoll = false;
+	spring->SetAbsolute(false, true, false);
 	spring->SetupAttachment(RootComponent);
 	// Create a dummy root component we can attach things to.
 	// Create a camera and a visible object
@@ -61,7 +59,7 @@ Acppball::Acppball()
 void Acppball::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogBlueprintUserMessages, Verbose, TEXT("hey------------------------------------------------"));
+	UE_LOG(LogTemp, Warning, TEXT("hey------------------------------------------------"));
 }
 
 // Called every frame
@@ -69,7 +67,7 @@ void Acppball::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	FRotator springRotation = spring->GetComponentRotation();
-
+	
 	{
 		float side = right + left;
 		float ahead = forward + back;
@@ -77,16 +75,22 @@ void Acppball::Tick(float DeltaTime)
 		FVector nowhere = { 0,0,0 };
 		FVector verticalAxis = { 0,0,1 };
 		FVector unitDirection = UKismetMathLibrary::GetDirectionUnitVector(nowhere,direction);
-		unitDirection.Y *= -1;
-		FVector unitDirectionScaled = unitDirection * 100000000.0;
-		FVector torqueToAdd = UKismetMathLibrary::RotateAngleAxis(unitDirectionScaled, springRotation.Yaw, verticalAxis);
-		//Add a material so you can see what is happening here.
-		OurVisibleComponent->AddTorqueInRadians(DeltaTime * torqueToAdd);
-		//GetController().ClientMessage(TEXT("hey"))
-
-		//OurVisibleComponent->AddForce(DeltaTime * direction * 3000);
+		float pushScale = 3000.0;
+		FVector rotatedUnitDirection = UKismetMathLibrary::RotateAngleAxis(unitDirection, springRotation.Yaw, verticalAxis);
+		OurVisibleComponent->AddForce(DeltaTime * rotatedUnitDirection * pushScale * OurVisibleComponent->GetMass());
+		float swap = rotatedUnitDirection.Y;
+		rotatedUnitDirection.Y = rotatedUnitDirection.X;
+		rotatedUnitDirection.X = swap*(-1);
+		float torqueScale = 100000000.0;
+		OurVisibleComponent->AddTorqueInRadians(DeltaTime * rotatedUnitDirection * torqueScale);
+		float rotation = rotateRight + rotateLeft;
+	//UE_LOG(LogTemp, Warning, TEXT("rot %f"), rotation);
+		FRotator rotationChange = FRotator(0.0f, 0.0f, 0.0f);
+		float rotationScale = 3.0;
+		rotationChange.Yaw = rotation * rotationScale;
+		USceneComponent * springComponent = CastChecked<USceneComponent>(spring);
+		springComponent->AddWorldRotation(rotationChange);
 	}
-
 }
 
 // Called to bind functionality to input
@@ -99,6 +103,8 @@ void Acppball::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("Right", this, &Acppball::Move_Right);
 	PlayerInputComponent->BindAxis("Back", this, &Acppball::Move_Back);
 	PlayerInputComponent->BindAxis("Forward", this, &Acppball::Move_Forward);
+	PlayerInputComponent->BindAxis("RotateRight", this, &Acppball::Rotate_Right);
+	PlayerInputComponent->BindAxis("RotateLeft", this, &Acppball::Rotate_Left);
 }
 
 void Acppball::Move_Right(float AxisValue)
@@ -119,4 +125,12 @@ void Acppball::Move_Forward(float AxisValue)
 void Acppball::Move_Back(float AxisValue)
 {
 	back = AxisValue;
+}
+void Acppball::Rotate_Right(float AxisValue)
+{
+	rotateRight = AxisValue;
+}
+void Acppball::Rotate_Left(float AxisValue)
+{
+	rotateLeft = AxisValue;
 }
