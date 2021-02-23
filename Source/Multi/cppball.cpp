@@ -24,7 +24,9 @@ Acppball::Acppball()
 	RootComponent = SphereComponent;
 	SphereComponent->InitSphereRadius(40.0f);
 	SphereComponent->SetCollisionProfileName(TEXT("Pawn"));
-	SphereComponent->SetSimulatePhysics(true);
+	bReplicates = false;
+	bReplicateMovement = false;
+	bAlwaysRelevant = true;
 
 	// Set this pawn to be controlled by the lowest-numbered player
 	//AutoPossessPlayer = EAutoReceiveInput::Player0;
@@ -38,7 +40,7 @@ Acppball::Acppball()
 	// Attach our camera and visible object to our root component. Offset and rotate the camera.
 	OurCamera->SetupAttachment(spring);
 	OurCamera->SetRelativeLocation(FVector(-250.0f, 0.0f, 250.0f));
-	OurCamera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
+	//OurCamera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
 
 	OurVisibleComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OurVisibleComponent"));
 	OurVisibleComponent->SetupAttachment(RootComponent);
@@ -59,7 +61,9 @@ Acppball::Acppball()
 void Acppball::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("hey------------------------------------------------"));
+	if (IsLocallyControlled()) {
+		SphereComponent->SetSimulatePhysics(true);
+	}
 }
 
 // Called every frame
@@ -67,6 +71,12 @@ void Acppball::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	FRotator springRotation = spring->GetComponentRotation();
+	if (HasAuthority()) {
+		ClientSetPosition(GetActorTransform());
+	}
+	else if (!HasAuthority() && IsLocallyControlled()) {
+		ServerSetPosition(GetActorTransform());
+	}
 	
 	{
 		float side = right + left;
@@ -133,4 +143,19 @@ void Acppball::Rotate_Right(float AxisValue)
 void Acppball::Rotate_Left(float AxisValue)
 {
 	rotateLeft = AxisValue;
+}
+
+bool Acppball::ServerSetPosition_Validate(FTransform position) {
+	return true;
+}
+void Acppball::ServerSetPosition_Implementation(FTransform position) {
+	SetActorTransform(position);
+}
+bool Acppball::ClientSetPosition_Validate(FTransform position) {
+	return true;
+}
+void Acppball::ClientSetPosition_Implementation(FTransform position) {
+	if (!IsLocallyControlled()) {
+		SetActorTransform(position);
+	}
 }
