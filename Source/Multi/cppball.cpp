@@ -13,6 +13,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/Material.h"
 #include "Logging/MessageLog.h"
+#include "RacingPlayerState.h"
 
 // Sets default values
 Acppball::Acppball()
@@ -24,6 +25,7 @@ Acppball::Acppball()
 	RootComponent = SphereComponent;
 	SphereComponent->InitSphereRadius(40.0f);
 	SphereComponent->SetCollisionProfileName(TEXT("Pawn"));
+	SphereComponent->SetSimulatePhysics(true);
 	bReplicates = false;
 	bReplicateMovement = false;
 	bAlwaysRelevant = true;
@@ -61,8 +63,11 @@ Acppball::Acppball()
 void Acppball::BeginPlay()
 {
 	Super::BeginPlay();
-	if (IsLocallyControlled()) {
-		SphereComponent->SetSimulatePhysics(true);
+	if (!IsLocallyControlled()) {
+	SphereComponent->SetSimulatePhysics(false);
+	SphereComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	OurVisibleComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	    UE_LOG(LogTemp, Warning, TEXT("rotted less"));
 	}
 }
 
@@ -77,24 +82,23 @@ void Acppball::Tick(float DeltaTime)
 	else if (!HasAuthority() && IsLocallyControlled()) {
 		ServerSetPosition(GetActorTransform());
 	}
-	
-	{
+	if (IsLocallyControlled()) {
 		float side = right + left;
 		float ahead = forward + back;
 		FVector direction = { ahead, side, 0 };
 		FVector nowhere = { 0,0,0 };
 		FVector verticalAxis = { 0,0,1 };
-		FVector unitDirection = UKismetMathLibrary::GetDirectionUnitVector(nowhere,direction);
+		FVector unitDirection = UKismetMathLibrary::GetDirectionUnitVector(nowhere, direction);
 		float pushScale = 3000.0;
 		FVector rotatedUnitDirection = UKismetMathLibrary::RotateAngleAxis(unitDirection, springRotation.Yaw, verticalAxis);
 		OurVisibleComponent->AddForce(DeltaTime * rotatedUnitDirection * pushScale * OurVisibleComponent->GetMass());
 		float swap = rotatedUnitDirection.Y;
 		rotatedUnitDirection.Y = rotatedUnitDirection.X;
-		rotatedUnitDirection.X = swap*(-1);
+		rotatedUnitDirection.X = swap * (-1);
 		float torqueScale = 100000000.0;
 		OurVisibleComponent->AddTorqueInRadians(DeltaTime * rotatedUnitDirection * torqueScale);
 		float rotation = rotateRight + rotateLeft;
-	//UE_LOG(LogTemp, Warning, TEXT("rot %f"), rotation);
+		UE_LOG(LogTemp, Warning, TEXT("rot %f"), rotation);
 		FRotator rotationChange = FRotator(0.0f, 0.0f, 0.0f);
 		float rotationScale = 3.0;
 		rotationChange.Yaw = rotation * rotationScale;
