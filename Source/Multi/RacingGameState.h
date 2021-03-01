@@ -19,7 +19,13 @@ public:
 	void StartRace();
 	bool StartRace_Validate();
 	void StartRace_Implementation();
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void StopRace();
+	bool StopRace_Validate();
+	void StopRace_Implementation();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector m_raceStart;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector m_lobbySpawn;
 };

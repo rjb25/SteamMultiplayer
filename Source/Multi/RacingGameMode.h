@@ -16,5 +16,6 @@ class MULTI_API ARacingGameMode : public AGameModeBase
 public:
 	ARacingGameMode();
 	bool checkAllReady();
+	bool checkAllDone();
 	
 };

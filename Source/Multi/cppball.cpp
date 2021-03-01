@@ -18,12 +18,30 @@
 // Sets default values
 Acppball::Acppball()
 {
+	SphereComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OurVisibleComponent"));
+	//TODO Remove
+	SphereComponent->SetupAttachment(RootComponent);
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereVisualAsset(TEXT("/Engine/BasicShapes/Sphere"));
+	//static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereVisualAsset(TEXT("/Game/StarterContent/Shapes/Shape_Sphere.Shape_Sphere"));
+
+	if (SphereVisualAsset.Succeeded()) {
+		SphereComponent->SetStaticMesh(SphereVisualAsset.Object);
+		//So it lands nicely on the ground when pulled out
+		SphereComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 40.0f));
+		SphereComponent->SetWorldScale3D(FVector(0.8f));
+		//FVector Bounds = SphereComponent->GetBounds();
+		//SphereComponent->SetComponentLocation(0.0f, 0.0f, -bounds.Z* 0.5f);
+	}
+	static ConstructorHelpers::FObjectFinder<UMaterial> BallSkin(TEXT("/Game/StarterContent/Materials/M_Brick_Clay_Beveled.M_Brick_Clay_Beveled"));
+	if (BallSkin.Succeeded()) {
+		SphereComponent->SetMaterial(0, BallSkin.Object);
+	}
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-	RootComponent = SphereComponent;
-	SphereComponent->InitSphereRadius(40.0f);
+	//SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	//RootComponent = SphereComponent;
+	//SphereComponent->InitSphereRadius(40.0f);
 	SphereComponent->SetCollisionProfileName(TEXT("Pawn"));
 	SphereComponent->SetSimulatePhysics(true);
 	bReplicates = false;
@@ -35,28 +53,16 @@ Acppball::Acppball()
 
 	spring = CreateDefaultSubobject<USpringArmComponent>(TEXT("spring"));
 	spring->SetAbsolute(false, true, false);
-	spring->SetupAttachment(RootComponent);
+	spring->SetRelativeRotation(FRotator(-30.0f, 0.0f, 0.0f));
+	spring->SetupAttachment(SphereComponent);
 	// Create a dummy root component we can attach things to.
 	// Create a camera and a visible object
 	OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("OurCamera"));
 	// Attach our camera and visible object to our root component. Offset and rotate the camera.
 	OurCamera->SetupAttachment(spring);
-	OurCamera->SetRelativeLocation(FVector(-250.0f, 0.0f, 250.0f));
+	OurCamera->SetRelativeLocation(FVector(-20.0f, 0.0f, 0.0f));
 	//OurCamera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
 
-	OurVisibleComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OurVisibleComponent"));
-	OurVisibleComponent->SetupAttachment(RootComponent);
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereVisualAsset(TEXT("/Game/StarterContent/Shapes/Shape_Sphere.Shape_Sphere"));
-
-	if (SphereVisualAsset.Succeeded()) {
-		OurVisibleComponent->SetStaticMesh(SphereVisualAsset.Object);
-		OurVisibleComponent->SetRelativeLocation(FVector(0.0f, 0.0f, -40.0f));
-		OurVisibleComponent->SetWorldScale3D(FVector(0.8f));
-	}
-	static ConstructorHelpers::FObjectFinder<UMaterial> BallSkin(TEXT("/Game/StarterContent/Materials/M_Brick_Clay_Beveled.M_Brick_Clay_Beveled"));
-	if (BallSkin.Succeeded()) {
-		OurVisibleComponent->SetMaterial(0, BallSkin.Object);
-	}
 }
 
 // Called when the game starts or when spawned
@@ -66,8 +72,8 @@ void Acppball::BeginPlay()
 	if (!IsLocallyControlled()) {
 	SphereComponent->SetSimulatePhysics(false);
 	SphereComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-	OurVisibleComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-	    UE_LOG(LogTemp, Warning, TEXT("rotted less"));
+	//OurVisibleComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	    //UE_LOG(LogTemp, Warning, TEXT("rotted less"));
 	}
 }
 
@@ -82,7 +88,9 @@ void Acppball::Tick(float DeltaTime)
 	else if (!HasAuthority() && IsLocallyControlled()) {
 		ServerSetPosition(GetActorTransform());
 	}
+
 	if (IsLocallyControlled()) {
+		//TODO I changed this to Sphere  component from visible component
 		float side = right + left;
 		float ahead = forward + back;
 		FVector direction = { ahead, side, 0 };
@@ -91,16 +99,16 @@ void Acppball::Tick(float DeltaTime)
 		FVector unitDirection = UKismetMathLibrary::GetDirectionUnitVector(nowhere, direction);
 		float pushScale = 3000.0;
 		FVector rotatedUnitDirection = UKismetMathLibrary::RotateAngleAxis(unitDirection, springRotation.Yaw, verticalAxis);
-		OurVisibleComponent->AddForce(DeltaTime * rotatedUnitDirection * pushScale * OurVisibleComponent->GetMass());
+		SphereComponent->AddForce(DeltaTime * rotatedUnitDirection * pushScale * SphereComponent->GetMass());
 		float swap = rotatedUnitDirection.Y;
 		rotatedUnitDirection.Y = rotatedUnitDirection.X;
 		rotatedUnitDirection.X = swap * (-1);
 		float torqueScale = 100000000.0;
-		OurVisibleComponent->AddTorqueInRadians(DeltaTime * rotatedUnitDirection * torqueScale);
+		SphereComponent->AddTorqueInRadians(DeltaTime * rotatedUnitDirection * torqueScale);
 		float rotation = rotateRight + rotateLeft;
-		UE_LOG(LogTemp, Warning, TEXT("rot %f"), rotation);
+		//UE_LOG(LogTemp, Warning, TEXT("rot %f"), rotation);
 		FRotator rotationChange = FRotator(0.0f, 0.0f, 0.0f);
-		float rotationScale = 3.0;
+		float rotationScale = 3.0*60*DeltaTime;
 		rotationChange.Yaw = rotation * rotationScale;
 		USceneComponent * springComponent = CastChecked<USceneComponent>(spring);
 		springComponent->AddWorldRotation(rotationChange);

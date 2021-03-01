@@ -13,6 +13,7 @@ ARacingGameMode::ARacingGameMode() {
 	PlayerControllerClass = ARacingPlayerController::StaticClass();
 	HUDClass = ARacingHUD::StaticClass();
 }
+
 bool ARacingGameMode::checkAllReady() {
 	ARacingGameState * gameState = GetGameState<ARacingGameState>();
 	TArray<APlayerState *> playerArray = gameState->PlayerArray;
@@ -25,5 +26,24 @@ bool ARacingGameMode::checkAllReady() {
 	}
 	gameState->StartRace();
 	return true;
+}
 
+bool ARacingGameMode::checkAllDone() {
+	ARacingGameState * gameState = GetGameState<ARacingGameState>();
+	TArray<APlayerState *> playerArray = gameState->PlayerArray;
+	for (int i = 0; i < playerArray.Num(); i++) {
+		if (ARacingPlayerState * racer = Cast<ARacingPlayerState>(playerArray[i])) {
+			if (!racer->getPlayerDone()) {
+			    return false;
+			}
+		}
+	}
+	for (int i = 0; i < playerArray.Num(); i++) {
+		if (ARacingPlayerState * racer = Cast<ARacingPlayerState>(playerArray[i])) {
+			racer->m_isDone = false;
+		    racer->m_isReady = false;
+		}
+	}
+	gameState->StopRace();
+	return true;
 }

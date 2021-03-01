@@ -45,11 +45,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	UCameraComponent* OurCamera;
 
-	UPROPERTY(EditAnywhere)
-    UStaticMeshComponent* OurVisibleComponent;
+	//UPROPERTY(EditAnywhere)
+    //UStaticMeshComponent* OurVisibleComponent;
 
 	UPROPERTY(EditAnywhere)
-	USphereComponent* SphereComponent;
+	UStaticMeshComponent* SphereComponent;
 	
 	    //Input functions
     void Move_Right(float AxisValue);
