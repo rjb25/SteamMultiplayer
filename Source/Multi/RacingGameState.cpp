@@ -14,6 +14,7 @@ bool ARacingGameState::StartRace_Validate() {
 
 void ARacingGameState::StartRace_Implementation() {
 	for (int i = 0; i < PlayerArray.Num(); i++) {
+		ARacingPlayerState * racer = Cast<ARacingPlayerState>(PlayerArray[i]);
 		Acppball * pawn = Cast<Acppball>(PlayerArray[i]->GetPawn());
 		if (pawn->IsLocallyControlled()) {
 			pawn->SetActorLocation(m_raceStart);
@@ -24,6 +25,9 @@ void ARacingGameState::StartRace_Implementation() {
 			FRotator currentRotation = prim->GetComponentRotation();
 			currentRotation.Yaw = 0.0f;
 			prim->SetWorldRotation(currentRotation);
+
+			racer->startTimer();
+
 		}
 	}
 	//Start timer
@@ -33,13 +37,17 @@ bool ARacingGameState::StopRace_Validate() {
 	return true;
 }
 void ARacingGameState::StopRace_Implementation() {
+	/*
 	for (int i = 0; i < PlayerArray.Num(); i++) {
+		ARacingPlayerState * racer = Cast<ARacingPlayerState>(PlayerArray[i]);
 		Acppball * pawn = Cast<Acppball>(PlayerArray[i]->GetPawn());
 		if (pawn->IsLocallyControlled()) {
 			pawn->SetActorLocation(m_lobbySpawn);
 			Cast<UPrimitiveComponent>(pawn->SphereComponent)->SetPhysicsLinearVelocity(FVector(0,0,0));
 			Cast<UPrimitiveComponent>(pawn->SphereComponent)->SetPhysicsAngularVelocityInDegrees(FVector(0,0,0));
+			racer->stopTimer();
 		}
 	}
+	*/
 	//Stop timer
 }

@@ -17,5 +17,6 @@ public:
 	ARacingGameMode();
 	bool checkAllReady();
 	bool checkAllDone();
+	void setRacerTime(float time);
 	
 };

@@ -13,5 +13,13 @@ UCLASS()
 class MULTI_API ARacingPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+public:
+	virtual void BeginPlay() override;
+	ARacingPlayerController();
+	void addHudCreator();
+	int m_totalHudCreators;
+	int m_countHudCreators;
+	
+
 	
 };

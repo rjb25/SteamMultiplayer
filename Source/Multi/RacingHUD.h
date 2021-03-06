@@ -6,6 +6,9 @@
 #include "GameFramework/HUD.h"
 #include "RacingHUD.generated.h"
 
+class UUserWidget;
+class ARacingGameState;
+class APlayerController;
 /**
  * 
  */
@@ -13,5 +16,17 @@ UCLASS()
 class MULTI_API ARacingHUD : public AHUD
 {
 	GENERATED_BODY()
+public:
+	virtual void BeginPlay() override;
+
+	ARacingHUD();
+
+	void createWidgets();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+	TSubclassOf<UUserWidget> m_raceStats;
+	//Change this to a cpp blueprint widget that they inherit from
+	UPROPERTY()
+	UUserWidget * m_raceStatsWidget;
 	
 };
