@@ -54,14 +54,15 @@ Acppball::Acppball()
 	spring = CreateDefaultSubobject<USpringArmComponent>(TEXT("spring"));
 	spring->SetAbsolute(false, true, false);
 	spring->SetRelativeRotation(FRotator(-30.0f, 0.0f, 0.0f));
+	spring->TargetArmLength = 500.0f;
 	spring->SetupAttachment(SphereComponent);
 	// Create a dummy root component we can attach things to.
 	// Create a camera and a visible object
 	OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("OurCamera"));
 	// Attach our camera and visible object to our root component. Offset and rotate the camera.
 	OurCamera->SetupAttachment(spring);
-	OurCamera->SetRelativeLocation(FVector(-20.0f, 0.0f, 0.0f));
-	//OurCamera->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
+	//OurCamera->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	OurCamera->SetRelativeRotation(FRotator(15.0f, 0.0f, 0.0f));
 
 }
 
