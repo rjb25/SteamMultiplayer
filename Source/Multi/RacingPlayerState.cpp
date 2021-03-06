@@ -18,7 +18,7 @@
 ARacingPlayerState::ARacingPlayerState() {
 	m_isReady = false;
 	m_isDone = false;
-	m_maxLap = 1;
+	m_maxLap = 2;
 	m_step = 0;
 	m_lap = 0;
 	m_totalSteps = 3;
