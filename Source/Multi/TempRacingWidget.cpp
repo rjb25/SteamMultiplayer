@@ -17,5 +17,4 @@
 		if (Place) {
 			Place->SetText(FText::AsNumber(place));
 		}
-
 	}
